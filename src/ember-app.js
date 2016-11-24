@@ -44,8 +44,12 @@ class EmberApp {
 
     this.html = fs.readFileSync(config.htmlFile, 'utf8');
 
-    this.sandbox = this.buildSandbox(distPath, options.sandbox, options.sandboxGlobals);
-    this.app = this.retrieveSandboxedApp();
+    this.sandBoxOptions = {
+      distPath,
+      sandbox: options.sandbox,
+      sandboxGlobals: options.sandboxGlobals
+    };
+
   }
 
   /**
@@ -270,6 +274,12 @@ class EmberApp {
     let html = options.html || this.html;
     let disableShoebox = options.disableShoebox || false;
     let destroyAppInstanceInMs = options.destroyAppInstanceInMs;
+    let sandBoxOptions = this.sandBoxOptions;
+
+    this.sandbox = this.buildSandbox(sandBoxOptions.distPath, sandBoxOptions.sandbox, sandBoxOptions.sandboxGlobals);
+    this.app = this.retrieveSandboxedApp();
+    console.log('[fastboot] created app sandbox');
+
 
     let shouldRender = (options.shouldRender !== undefined) ? options.shouldRender : true;
     let bootOptions = buildBootOptions(shouldRender);
@@ -300,6 +310,7 @@ class EmberApp {
       }, destroyAppInstanceInMs);
     }
 
+
     let instance;
     return this.visitRoute(path, fastbootInfo, bootOptions, result)
       .then(appInstance => {
@@ -321,6 +332,9 @@ class EmberApp {
           if (destroyAppInstanceTimer) {
             clearTimeout(destroyAppInstanceTimer);
           }
+
+          console.log('[fastboot] destroyed app sandbox');
+          this.sandbox = null;
         }
       });
   }
